@@ -34,14 +34,18 @@ dev.c
 
 ## 2. 启动和初始化
 
-### 2.1 初始化进程
+### 2.1 初始化进程和tcp协议栈
 
-start-kernel(main.c)-->do_basic_setup(main.c)-->sock_init(/net/socket.c)-->do_initcalls(main.c)
+start-kernel(main.c)-->do_basic_setup(main.c)-->sock_init(/net/socket.c)  
+-->do_initcalls(main.c)
 
-### 2.2 初始化socket
+tcp协议栈的初始化在inet_init()中实现，调用tcp_v4_init()[tcp_ipv4.c]
+
+### 2.2 初始化socket、sock结构体
 
 创建socket(AF_INET, SOCK_DGRAM, IPPROTO_TCP) [net/socket.c]  
-通过sys_socketcall即SYSCALL_DEFINE2(socketcall)调用sys_socket即SYSCALL_DEFINE3(socket)   
+通过sys_socketcall即SYSCALL_DEFINE2(socketcall)调用sys_socket即SYSCALL_DEFINE3  
+(socket)   
 调用sock_creat() 创建socket结构, 根据协议调用不同create函数。TCP为family=AF_INET,  
 则调用inet_create（）。
 调用sock_map_fd()将之映射到文件描述符，使socket能通过fd进行访问。  
@@ -55,18 +59,28 @@ start-kernel(main.c)-->do_basic_setup(main.c)-->sock_init(/net/socket.c)-->do_in
    goto out_release;
 ```
 
-inet_create() [net/ipv4/af_inet.c] , sock->state = SS_UNCONNECTED  
+inet_create() [net/ipv4/af_inet.c] , **struct socket \*sock->state = SS_UNCONNECTED**  
 创建sock结构，socket->ops初始化为inet_stream_ops, sock->prot初始化为tcp_prot；  
-调用sock_init_data(), 将该socket的变量sock和sock类型的变量关联起来。  
-
-socket{}结构表示INET中的实体，sock{}结构就是网络层实体，用来保存连接的状态，变量叫sk。
+调用sock_init_data(), 将该socket的变量sock和sock类型的变量关联起来。socket{}结构是  
+INET中的实体，sock{}结构是网络层实体，保存连接的状态，sock sk。
+```c
+static int inet_create(struct net *net, struct socket *sock, int protocol,
+		       int kern)
+  struct sock *sk;
+  ......
+  sock->state = SS_UNCONNECTED;
+  ......
+  /*初始化sk结构体*/
+  sock_init_data(sock, sk);
+  ......
+```
 
 ## 3. 建立连接（三次握手）
 
-典型的客户端流程：  connect() -> send() -> recv()  
-典型的服务器流程：  bind() -> listen() -> accept() -> recv() -> send()
+典型的客户端流程：  socket()->connect()->send()->recv()
+典型的服务器流程：  socket()->bind()->listen()->accept()->recv()->send()
 
-![TCP状态转移图](https://github.com/chzhyang/tcpip-linux/tree/master/img/tcp状态转移图.png)
+![TCP状态转移图](https://github.com/chzhyang/tcpip-linux/blob/master/img/tcp%E7%8A%B6%E6%80%81%E8%BD%AC%E7%A7%BB%E5%9B%BE.png)
 
 ### 3.1 客户端 <br>
 (1)发送SYN报文，向服务器发起tcp连接  
@@ -107,15 +121,16 @@ if (!snum) {
 tcp的内核表组成：  
 udp的表内核表udptable只是一张hash表，tcp的表则稍复杂，它的名字是tcp_hashinfo，在tcp_init()中  
 被初始化，这个数据结构定义如下:
-```c
+```
 struct inet_hashinfo {
  struct inet_ehash_bucket *ehash;
- ……
+......
  struct inet_bind_hashbucket *bhash;
- ……
+......
  struct inet_listen_hashbucket  listening_hash[INET_LHTABLE_SIZE]
      __cacheline_aligned_in_smp;
 };
+
 ```
 tcp表又分成了三张表ehash, bhash, listening_hash，其中ehash, listening_hash对应于socket  
 处在TCP的ESTABLISHED, LISTEN状态，bhash对应于socket已绑定了本地地址。  
@@ -173,7 +188,7 @@ tcp_send_ack(sk);
 
 ### 3.2 服务器端
 
-![流程图](https://github.com/chzhyang/tcpip-linux/tree/master/img/connect_establish.png)
+![流程图](https://github.com/chzhyang/tcpip-linux/blob/master/img/connect_establish.png)
 
 (1)被动建立连接
 bind() -> inet_bind()  bind操作的主要作用是将创建的socket与给定的地址相绑定。socket  

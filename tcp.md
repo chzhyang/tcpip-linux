@@ -1,6 +1,8 @@
 # TCP
 
-## 1. preparation
+## 1. 知识准备
+
+### 1.1 源代码
 
 BSD socket层：适用于各种协议，主要结构struct socket
 /net/socket.c  
@@ -30,15 +32,13 @@ ip_output.c
 dev.c  
 /driver/net
 
-## 2. 启动
+## 2. 启动和初始化
 
 ### 2.1 初始化进程
 
 start-kernel(main.c)-->do_basic_setup(main.c)-->sock_init(/net/socket.c)-->do_initcalls(main.c)
 
-## 3. 网络连接的初始化和建立
-
-### 3.1 初始化
+### 2.2 初始化
 
 创建socket：socket(AF_INET, SOCK_DGRAM, IPPROTO_TCP) 调用接口[net/socket.c]
 通过sys_socketcall即SYSCALL_DEFINE2(socketcall)调用sys_socket即SYSCALL_DEFINE3(socket) 。  
@@ -69,15 +69,14 @@ inet_create(), /af_inet.c , sock->state = SS_UNCONNECTED;
 然后调用sock_init_data(), 将该socket结构的变量sock和sock类型的变量关联起来。  
 socket{}结构表示INET中的实体，而sock{ }结构就是网络层实体，sock用来保存打开的连接的状态信息。它一般定义的变量叫sk。
 
-### 3.2 建立连接
-
-http://www.cnhalo.net/2016/06/13/linux-tcp-synack-rcv/  
-https://blog.csdn.net/qy532846454/article/details/7882819
+## 3. 建立连接（三次握手）
 
 典型的客户端流程：  connect() -> send() -> recv()  
 典型的服务器流程：  bind() -> listen() -> accept() -> recv() -> send()
 
-客户端 <br>
+![TCP状态转移图](https://github.com/chzhyang/tcpip-linux/tree/master/img/tcp状态转移图.png)
+
+### 3.1 客户端 <br>
 (1)发送SYN报文，向服务器发起tcp连接  
 connect(fd, servaddr, addrlen);
 系统调用call =3, sys_connect(), SYSCALL＿DEFINE3()   
@@ -177,7 +176,10 @@ tcp_set_state(sk, TCP_ESTABLISHED);
 tcp_send_ack(sk);
 ```
 
-服务器端
+### 3.2 服务器端
+
+![流程图]https://github.com/chzhyang/tcpip-linux/tree/master/img/connect_establish.png
+
 (1)被动建立连接
 bind() -> inet_bind()  bind操作的主要作用是将创建的socket与给定的地址相绑定。socket  
 状态为TCP_ClOSE。
@@ -360,9 +362,11 @@ case TCP_SYN_RECV:
   ……
 }
 ```
-
 ## 4. send data
 
 send()-->sys_send()-->sys_sendto()-->sock_sendmsg()-->inet_sendmsg()-->tcp_sendmsg()
 
 reference:
+http://www.cnhalo.net/2016/06/13/linux-tcp-synack-rcv/  
+https://blog.csdn.net/qy532846454/article/details/7882819
+https://blog.csdn.net/wenqian1991/article/details/40110703

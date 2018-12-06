@@ -178,7 +178,7 @@ tcp_send_ack(sk);
 
 ### 3.2 服务器端
 
-![流程图]https://github.com/chzhyang/tcpip-linux/tree/master/img/connect_establish.png
+![流程图](https://github.com/chzhyang/tcpip-linux/tree/master/img/connect_establish.png)
 
 (1)被动建立连接
 bind() -> inet_bind()  bind操作的主要作用是将创建的socket与给定的地址相绑定。socket  

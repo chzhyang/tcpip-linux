@@ -32,6 +32,85 @@ ip_output.c
 dev.c  
 /driver/net
 
+### 1.2 socket是什么
+
+socket起源于Unix，而Unix/Linux基本哲学之一就是“一切皆文件”，即使用“open–>write/read   
+–> close”模式操作。Socket就是该模式的一个实现，它是一种特殊的文件，各种socket函数就是  
+对其进行上述操作。
+>在组网领域的首次使用是在1970年2月12日发布的文献IETF RFC33中 发现的，撰写者为Stephen   
+Carr、Steve Crocker和Vint Cerf。根据美国计算机历史博物馆的记载，Croker写道：“命名空  
+间的元素都可称为套接字接口。一个套接字接口构成一个连接的一端，而一个连接可完 全由一对  
+套接字接口规定。”计算机历史博物馆补充道：“这比BSD的套接字接口定义早了大约12年。”
+
+socket对应的接口函数：  
+(1)int socket(int domain, int type, int protocol)  
+socket()对应普通文件的打开操作。普通文件的打开操作返回一个文件描述字，而socket()用于创  
+建一个 **socket描述符（socket descriptor），唯一标识一个socket**。类似文件描述字，后  
+续的操作都会通过它来进行一些r/w/close操作。  
+参数：  
+domain：协议族（family）。常用的AF_INET、AF_INET6、AF_LOCAL/AF_UNIX/Unix域socket）、  
+AF_ROUTE等。它决定socket的地址类型。  
+type：socket类型，SOCK_STREAM、SOCK_DGRAM、SOCK_RAW、SOCK_PACKET等。  
+protocol：指定协议，IPPROTO_TCP、IPPTOTO_UDP、IPPROTO_SCTP、IPPROTO_TIPC，分别对应  
+TCP传输协议、UDP传输协议、STCP传输协议、TIPC传输协议。  
+
+(2)int bind(int sockfd, const struct sockaddr \*addr, socklen_t addrlen)    
+bind()把一个地址族中的特定地址赋给socket。如对应AF_INET6就把一个ipv6 **地址和端口号组  
+合** 赋给socket。  
+参数：  
+sockfd：socket描述字  
+addrlen：地址长度  
+addr：一个const struct sockaddr指针，指向要绑定给sockfd的协议地址。
+```
+//ipv4
+struct sockaddr_in {
+    sa_family_t    sin_family; /* address family: AF_INET */
+    in_port_t      sin_port;   /* port in network byte order */
+    struct in_addr sin_addr;   /* internet address */
+};
+/* Internet address. */
+struct in_addr {
+    uint32_t       s_addr;     /* address in network byte order */
+};
+//ipv6
+struct sockaddr_in6 {
+    sa_family_t     sin6_family;   /* AF_INET6 */
+    in_port_t       sin6_port;     /* port number */
+    uint32_t        sin6_flowinfo; /* IPv6 flow information */
+    struct in6_addr sin6_addr;     /* IPv6 address */
+    uint32_t        sin6_scope_id; /* Scope ID (new in 2.4) */
+};
+
+struct in6_addr {
+    unsigned char   s6_addr[16];   /* IPv6 address */
+};
+```
+服务器在启动的时会绑定一个公开的地址提供服务，客户通过它接连服务器，所以服务器listen()  
+前会调用bind()；而客户端就不用指定，是在connect()时由系统随机生成一个。
+
+(3)int listen(int sockfd, int backlog);  
+int connect(int sockfd, const struct sockaddr \*addr, socklen_t addrlen);   
+listen（），对应发服务器，sockfd：要监听的socket描述字，backlog相应socket可以排队的最  
+大连接个数。socket()函数创建的socket默认是一个主动类型的，listen()会将socket变为被动类  
+型的，等待客户的连接请求。  
+connect()，对应客户端，sockfd：客户端的socket描述字，\*addr：服务器socket地址，addrlen：  
+socket地址的长度。客户端通过调用connect函数建立与TCP服务器的连接。
+
+（4）int accept(int sockfd, struct sockaddr \*addr, socklen_t \*addrlen);  
+TCP服务器端依次调用socket()、bind()、listen()之后，就会监听指定的socket地址了。TCP客  
+户端依次调用socket()、connect()之后就向服务器发送连接请求。TCP服务器监听到这个请求之后，  
+会调用accept()函数接收请求，连接就建了。  
+参数：  
+sockfd：服务器调用socket()生成的监听socket描述字，accept()会返回已连接的socket描述字。  
+前者，服务器一般值创建一个，始终存在，而后者服务器会根据连接创建，直到连接关闭。
+
+(5)ssize_t sendmsg(int sockfd, const struct msghdr \*msg, int flags)  
+ssize_t recvmsg(int sockfd, struct msghdr \*msg, int flags)  
+相当于堆sockfd进行I/O操作
+
+(6)int close(int fd)  
+关闭相应的socket描述字，类似fclose()关闭打开的文件。  
+
 ## 2. 启动和初始化
 
 ### 2.1 初始化进程和tcp协议栈
@@ -77,12 +156,19 @@ static int inet_create(struct net *net, struct socket *sock, int protocol,
 
 ## 3. 建立连接（三次握手）
 
-典型的客户端流程：  socket()->connect()->send()->recv()
+典型的客户端流程：  socket()->connect()->send()->recv()  
 典型的服务器流程：  socket()->bind()->listen()->accept()->recv()->send()
+
+客户端调用connect，触发连接请求，向服务器发送了SYN J，这时connect进入阻塞状态；  
+服务器监听到连接请求，即收到SYN J包，调用accept接收请求，向客户端发送SYN K ACK J+1后  
+accept进入阻塞状态；  
+客户端收到服务器的SYN K ACK J+1后，connect返回，并发送ACK K+1对SYN K进行确认；  
+服务器收到ACK K+1时，accept返回，三次握手完毕，连接建立。
 
 ![TCP状态转移图](https://github.com/chzhyang/tcpip-linux/blob/master/img/tcp%E7%8A%B6%E6%80%81%E8%BD%AC%E7%A7%BB%E5%9B%BE.png)
 
-### 3.1 客户端 <br>
+### 3.1 客户端
+
 (1)发送SYN报文，向服务器发起tcp连接  
 connect(fd, servaddr, addrlen) 调用sys_connect(),即SYSCALL＿DEFINE3()   
 sock->ops->connect() == inet_stream_connect (sock->ops即inet_stream_ops)  
@@ -161,8 +247,8 @@ tp->snd_nxt = tp->write_seq;
 
 tcp_v4_rcv()
 ```c
-sk = __inet_lookup_skb(&tcp_hashinfo, skb, th->source, th->dest); //在ehash中找到  
-TCP_SYN_SENT状态的sk
+//在ehash中找到TCP_SYN_SENT状态的sk
+sk = __inet_lookup_skb(&tcp_hashinfo, skb, th->source, th->dest);
 //connect()即使阻塞也不占有锁
 	if (!sock_owned_by_user(sk)) {
 		 //对于synack，不会排入prepare队列
@@ -284,7 +370,7 @@ if (tcp_rcv_state_process(sk, skb, tcp_hdr(skb), skb->len)) {
  处理各个状态上socket的情况。处于TCP_LISTEN的socket不会再向其它状态变迁，它负责监听，  
  并在连接建立时创建新的socket。
 
- ```c
+```c
 case TCP_LISTEN:
 ……
  if (th->syn) {
@@ -378,5 +464,6 @@ send()-->sys_send()-->sys_sendto()-->sock_sendmsg()-->inet_sendmsg()-->tcp_sendm
 
 reference:
 http://www.cnhalo.net/2016/06/13/linux-tcp-synack-rcv/  
-https://blog.csdn.net/qy532846454/article/details/7882819
+https://blog.csdn.net/qy532846454/article/details/7882819  
 https://blog.csdn.net/wenqian1991/article/details/40110703
+https://www.cnblogs.com/cy568searchx/p/4211124.html

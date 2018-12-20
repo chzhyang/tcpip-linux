@@ -176,8 +176,16 @@ int Hello(int argc, char *argv[])
 }
 
 /*UDP*/
-#define SERVER_PORT 8888 #define MAX_MSG_SIZE 1024  
-/*UDP-client*/
+#define SERVER_PORT 8888 
+#define MAX_MSG_SIZE 1024  
+#define BUFF_LEN 1024
+/*
+
+    UDP client:
+
+            socket-->sendto-->revcfrom-->close
+
+*/
 void udp_msg_sender(int fd, struct sockaddr* dst)
 {
 
@@ -209,7 +217,9 @@ int udp_hello (){
 
     memset(&ser_addr, 0, sizeof(ser_addr));
     ser_addr.sin_family = AF_INET;
-    //ser_addr.sin_addr.s_addr = inet_addr(SERVER_IP);     
+    //注意这一行，填入实际的服务器端的IP就可以和实际的服务器通信了
+    //ser_addr.sin_addr.s_addr = inet_addr(SERVER_IP);    
+    //这里使用NADDR_ANY是和本机通信 
     ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);  //注意网络序转换     
     ser_addr.sin_port = htons(SERVER_PORT);  //注意网络序转换 
     udp_msg_sender(client_fd, (struct sockaddr*)&ser_addr);
@@ -220,7 +230,13 @@ int udp_hello (){
 
 }
 
-/*UDP server*/
+/*
+
+    UDP server:
+
+            socket-->bind-->recvfrom-->sendto-->close
+
+*/
 void handle_udp_msg(int fd)
 {
     char buf[BUFF_LEN];  //接收缓冲区，1024字节    
@@ -270,6 +286,30 @@ int udp_reply(){
     handle_udp_msg(server_fd);   //处理接收到的数据 
     close(server_fd);
     return 0;
+}
+
+int udp_reply_start(int argc, char *argv[])
+{
+	int pid;
+	/* fork another process */
+	pid = fork();
+	if (pid < 0)
+	{
+		/* error occurred */
+		fprintf(stderr, "Fork Failed!");
+		exit(-1);
+	}
+	else if (pid == 0)
+	{
+		/*	 child process 	*/
+		udp_reply();
+		printf("Reply  UDP Service Started!\n");
+	}
+	else
+	{
+		/* 	parent process	 */
+		printf("Please input udpHello...\n");
+	}
 }
 
 
@@ -378,8 +418,8 @@ int main()
     MenuConfig("quit","Quit from MenuOS",Quit);
     MenuConfig("replyhi", "Reply hi TCP Service", StartReplyhi);
     MenuConfig("hello", "Hello TCP Client", Hello);
-    MenuConfig("udpReply", "Reply hi TCP Service", udp_reply);
-    MenuConfig("udpHello", "Hello TCP Client", udp_hello);
+    MenuConfig("udpReply", "Reply hi UDP Service", udp_reply_start);
+    MenuConfig("udpHello", "Hello UDP Client", udp_hello);
     ExecuteMenu();
 }
 

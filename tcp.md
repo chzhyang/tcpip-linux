@@ -165,7 +165,7 @@ accept进入阻塞状态；
 客户端收到服务器的SYN K ACK J+1后，connect返回，并发送ACK K+1对SYN K进行确认；  
 服务器收到ACK K+1时，accept返回，三次握手完毕，连接建立。
 
-![TCP状态转移图](https://github.com/chzhyang/tcpip-linux/blob/master/img/tcp%E7%8A%B6%E6%80%81%E8%BD%AC%E7%A7%BB%E5%9B%BE.png)
+![TCP状态转移图](/img/tcpStates.gif)
 
 ### 3.1 客户端
 
@@ -274,7 +274,7 @@ tcp_send_ack(sk);
 
 ### 3.2 服务器端
 
-![流程图](https://github.com/chzhyang/tcpip-linux/blob/master/img/connect_establish.png)
+![流程图](/img/connect_establisg.gif)
 
 (1)被动建立连接
 bind() -> inet_bind()  bind操作的主要作用是将创建的socket与给定的地址相绑定。socket  

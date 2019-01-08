@@ -200,7 +200,7 @@ void udp_msg_sender(int fd, struct sockaddr* dst)
     {
         recvfrom(fd, buf, BUFF_LEN, 0, (struct sockaddr*)&src, &len);  //接收来自server的信息         
         printf("get server msg:%s\n",buf);
-        return 0;
+        return;
     }
 }
  
@@ -338,13 +338,13 @@ void HttpRequest(int sock_fd, char *filename,FILE *fp)
     printf("begin send request\n");
     memset(str1,0,4096);
     //https://13.250.177.223:80/index.html
-    //strcat(str1,"GET https://13.250.177.223:80/index.html HTTP/1.1\r\n");
-    strcat(str1,"GET http://www.baidu.com/index.html HTTP/1.1\r\n");
+    strcat(str1,"GET https://github.com/index.html HTTP/1.1\r\n");
+    //strcat(str1,"GET http://www.baidu.com/index.html HTTP/1.1\r\n");
     strcat(str1,"Accept:html/text*/*\r\n");
     strcat(str1,"Accept-language:zh-ch\r\n");
     strcat(str1,"Accept-Encoding:gzip,deflate\r\n");
-    //strcat(str1,"Host: 13.250.177.223:80\r\n");
-    strcat(str1,"Host: 180.97.33.107:80\r\n");
+    strcat(str1,"Host: 13.250.177.223:80\r\n");
+    //strcat(str1,"Host: 180.97.33.107:80\r\n");
     strcat(str1,"User-Agent:chzhyang's client<1.0>\r\n");
     strcat(str1,"Connection:Close\r\n");
     strcat(str1,"\r\n");

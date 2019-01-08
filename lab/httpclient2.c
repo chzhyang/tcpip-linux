@@ -10,7 +10,7 @@
 #include <netdb.h> 
 
 #define DEST_PORT 80
-#define DEST_IP_ADDR "180.97.33.107/" //13.250.177.223 13.229.188.59 52.74.223.119nslookup 
+#define DEST_IP_ADDR "13.250.177.223" //13.250.177.223 13.229.188.59 52.74.223.119nslookup 
 #define DEST_IP_BY_NAME "github.com"
 //#define DEST_IP_BY_NAME "www.baidu.com"
 void HttpRequest(int sock_fd, char *filename,FILE *fp)
@@ -87,20 +87,20 @@ int main(int argc, char const *argv[])
         printf("init sock successful\n");      
     }
     //url->ip
-   /*
+   
     struct hostent* hostInfo = gethostbyname(DEST_IP_BY_NAME);
     if(NULL == hostInfo)
     {
         printf("Gethostname error\n");
         return 0;
     }
-    */
+    
     memset(&addr_serv, 0, sizeof(addr_serv));
     addr_serv.sin_family = AF_INET;
     addr_serv.sin_port = htons(DEST_PORT);
-    addr_serv.sin_addr.s_addr = inet_addr(DEST_IP_ADDR);
-    //printf("Ip address = %s \n",inet_ntoa(*((struct in_addr*)hostInfo->h_addr)));
-    //memcpy(&addr_serv.sin_addr, &(*hostInfo->h_addr_list[0]), hostInfo->h_length);
+    //addr_serv.sin_addr.s_addr = inet_addr(DEST_IP_ADDR);
+    printf("Ip address = %s \n",inet_ntoa(*((struct in_addr*)hostInfo->h_addr)));
+    memcpy(&addr_serv.sin_addr, &(*hostInfo->h_addr_list[0]), hostInfo->h_length);
 
     //connect
     printf("begin connect\n");

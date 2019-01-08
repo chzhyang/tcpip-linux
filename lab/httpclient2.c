@@ -87,20 +87,23 @@ int main(int argc, char const *argv[])
         printf("init sock successful\n");      
     }
     //url->ip
+   /*
     struct hostent* hostInfo = gethostbyname(DEST_IP_BY_NAME);
     if(NULL == hostInfo)
     {
         printf("Gethostname error\n");
         return 0;
     }
+    */
     memset(&addr_serv, 0, sizeof(addr_serv));
     addr_serv.sin_family = AF_INET;
     addr_serv.sin_port = htons(DEST_PORT);
-    //addr_serv.sin_addr.s_addr = inet_addr(DEST_IP_ADDR);
-    printf("Ip address = %s \n",inet_ntoa(*((struct in_addr*)hostInfo->h_addr)));
-    memcpy(&addr_serv.sin_addr, &(*hostInfo->h_addr_list[0]), hostInfo->h_length);
+    addr_serv.sin_addr.s_addr = inet_addr(DEST_IP_ADDR);
+    //printf("Ip address = %s \n",inet_ntoa(*((struct in_addr*)hostInfo->h_addr)));
+    //memcpy(&addr_serv.sin_addr, &(*hostInfo->h_addr_list[0]), hostInfo->h_length);
 
     //connect
+    printf("begin connect\n");
     if (connect(sock_fd, (struct sockaddr*)(&addr_serv), sizeof(addr_serv)) < 0)
     {
         perror("connect error\n");

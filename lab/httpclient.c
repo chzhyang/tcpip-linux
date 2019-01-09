@@ -11,8 +11,8 @@
 
 #define DEST_PORT 80
 #define DEST_IP_ADDR "180.97.33.107/" //13.250.177.223 13.229.188.59 52.74.223.119nslookup 
-//#define DEST_IP_BY_NAME "github.com"
-#define DEST_IP_BY_NAME "www.baidu.com"
+#define DEST_IP_BY_NAME "github.com"
+//#define DEST_IP_BY_NAME "www.baidu.com"
 void HttpRequest(int sock_fd)
 {
     FILE *fp = NULL;
@@ -25,7 +25,7 @@ void HttpRequest(int sock_fd)
         printf("begin send request\n");
         memset(str1,0,4096);
         //https://13.250.177.223:80/index.html
-        //strcat(str1,"GET https://13.250.177.223:80/index.html HTTP/1.1\r\n");
+        strcat(str1,"GET https://13.250.177.223:80/index.html HTTP/1.1\r\n");
         strcat(str1,"GET http://www.baidu.com/index.html HTTP/1.1\r\n");
         strcat(str1,"Accept:html/text*/*\r\n");
         strcat(str1,"Accept-language:zh-ch\r\n");
@@ -57,7 +57,7 @@ void HttpRequest(int sock_fd)
                 printf("recv success:\n%s\n",rcvBuf);
             }
         }
-        //break;
+        break;
         sleep(5);
     }
     
@@ -93,6 +93,7 @@ int main(int argc, char const *argv[])
     memcpy(&addr_serv.sin_addr, &(*hostInfo->h_addr_list[0]), hostInfo->h_length);
 
     //connect
+    printf("begin connect\n");
     if (connect(sock_fd, (struct sockaddr*)(&addr_serv), sizeof(addr_serv)) < 0)
     {
         perror("connect error\n");

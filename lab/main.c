@@ -327,17 +327,16 @@ int udp_reply_start(int argc, char *argv[])
 #define DEST_IP_ADDR "13.250.177.223" //13.250.177.223 13.229.188.59 52.74.223.119nslookup 
 #define DEST_IP_BY_NAME "github.com"
 //#define DEST_IP_BY_NAME "www.baidu.com"
-void HttpRequest(int sock_fd, char *filename,FILE *fp)
+void HttpRequest(int sock_fd)
 {
     
-    int sendNum;
+    int sendNum=0;
     char sendBuf[] = "good luck";
     char rcvBuf[4096];
     char str1[4096];
     int recvNum = 0;
     printf("begin send request\n");
     memset(str1,0,4096);
-    //https://13.250.177.223:80/index.html
     strcat(str1,"GET http://github.com/index.html HTTP/1.1\r\n");
     //strcat(str1,"GET http://www.baidu.com/index.html HTTP/1.1\r\n");
     strcat(str1,"Accept:html/text*/*\r\n");
@@ -386,8 +385,8 @@ void HttpRequest(int sock_fd, char *filename,FILE *fp)
 }
 int httpClient()
 {
-    FILE *fp = NULL;
-    char filename[256] = "./index.html";
+    //FILE *fp = NULL;
+    //char filename[256] = "./index.html";
     //init sockt
     int sock_fd = -1;
     struct sockaddr_in addr_serv;
@@ -399,7 +398,7 @@ int httpClient()
     }
     else
     {
-        printf("init sock successful\n");      
+        printf("init sock success\n");      
     }
     //url->ip
     struct hostent* hostInfo = gethostbyname(DEST_IP_BY_NAME);
@@ -429,7 +428,7 @@ int httpClient()
     }
 
     //send http request, recv reflaction
-    HttpRequest(sock_fd,filename,fp);
+    HttpRequest(sock_fd);
     //close
     close(sock_fd);
     return 0;
@@ -540,8 +539,8 @@ int main()
     MenuConfig("quit","Quit from MenuOS",Quit);
     MenuConfig("replyhi", "Reply hi TCP Service", StartReplyhi);
     MenuConfig("hello", "Hello TCP Client", Hello);
-    MenuConfig("udpReply", "Reply hi UDP Service", udp_reply_start);
-    MenuConfig("udpHello", "Hello UDP Client", udp_hello);
+    MenuConfig("udpreply", "Reply hi UDP Service", udp_reply_start);
+    MenuConfig("udphello", "Hello UDP Client", udp_hello);
     MenuConfig("httpHello", "HTTP Client", httpClient);
     ExecuteMenu();
 }

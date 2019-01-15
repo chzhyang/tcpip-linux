@@ -456,13 +456,19 @@ int BringUpNetInterface()
     
     printf("Bring up interface:eth0\n");
     sa.sin_family = AF_INET;
-    sa.sin_addr.s_addr = inet_addr("192.168.40.254");
+    sa.sin_addr.s_addr = inet_addr("10.0.2.15");
     fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
     strncpy(ifreqlo.ifr_name, "eth0",sizeof("eth0"));
     memcpy((char *) &ifreqlo.ifr_addr, (char *) &sa, sizeof(struct sockaddr));
     ioctl(fd, SIOCSIFADDR, &ifreqlo);
     ioctl(fd, SIOCGIFFLAGS, &ifreqlo);
     ifreqlo.ifr_flags |= IFF_UP|IFF_RUNNING;
+    ((unsigned char *) &ifreqlo.ifr_hwaddr.sa_data)[0] = 0x02;
+    ((unsigned char *) &ifreqlo.ifr_hwaddr.sa_data)[1] = 0x42;
+    ((unsigned char *) &ifreqlo.ifr_hwaddr.sa_data)[2] = 0xc0;
+    ((unsigned char *) &ifreqlo.ifr_hwaddr.sa_data)[3] = 0xa8;
+    ((unsigned char *) &ifreqlo.ifr_hwaddr.sa_data)[4] = 0x28;
+    ((unsigned char *) &ifreqlo.ifr_hwaddr.sa_data)[5] = 0x05;
     ioctl(fd, SIOCSIFFLAGS, &ifreqlo);
     close(fd);
 

@@ -180,11 +180,7 @@ int Hello(int argc, char *argv[])
 #define MAX_MSG_SIZE 1024  
 #define BUFF_LEN 1024
 /*
-
-    UDP client:
-
-            socket-->sendto-->revcfrom-->close
-
+ *   UDP client: socket-->sendto-->revcfrom-->close
 */
 void udp_msg_sender(int fd, struct sockaddr* dst)
 {
@@ -231,11 +227,7 @@ int udp_hello (){
 }
 
 /*
-
-    UDP server:
-
-            socket-->bind-->recvfrom-->sendto-->close
-
+*   UDP server: socket-->bind-->recvfrom-->sendto-->close
 */
 void handle_udp_msg(int fd)
 {
@@ -353,7 +345,7 @@ void HttpRequest(int sock_fd)
     if (sendNum < 0) 
     {
         perror("send error");
-        exit(1);
+        return;
     } 
     else 
     {
@@ -367,7 +359,7 @@ void HttpRequest(int sock_fd)
             if(recvNum < 0) 
             {
                 perror("recv error\n");
-                exit(1);
+                return;
             } 
             else 
             {
@@ -394,7 +386,7 @@ int httpClient()
     if (sock_fd < 0)
     {
         perror("init sock error\n");
-        exit(1);
+        return;
     }
     else
     {
@@ -421,7 +413,7 @@ int httpClient()
     if (connect(sock_fd, (struct sockaddr*)(&addr_serv), sizeof(addr_serv)) < 0)
     {
         perror("connect error\n");
-        exit(1);
+        return;
     }
     else
     {
@@ -551,7 +543,7 @@ int    SetDefaultGateway()
 
     if(((sockfd = socket(AF_INET, SOCK_DGRAM, 0)))<0){
         perror("socket");
-        exit(1);
+        return;
     }
 
     memset(&route, 0, sizeof(route));
@@ -569,7 +561,7 @@ int    SetDefaultGateway()
     route.rt_metric = 0;
     if ((err = ioctl(sockfd, SIOCADDRT, &route)) != 0) {
          perror("SIOCADDRT failed");
-         exit(1);
+         return;
     }
     printf("Default gateway %s\n", inet_ntoa( ( (struct sockaddr_in *)  &route.rt_gateway)->sin_addr)); 
 }

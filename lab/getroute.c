@@ -187,5 +187,6 @@ int GetRoute()
     close(sock);
 
     printGateway();
+    //print("set gatway OK!\n");
     return 0;
 }

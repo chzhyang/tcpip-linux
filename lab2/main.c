@@ -336,11 +336,11 @@ int    SetDefaultGateway()
 
 void HttpRequest(int sock_fd)
 {
-    FILE *fp = NULL;
+    //FILE *fp = NULL;
     int sendNum;
     char sendBuf[] = "goog luck";
     char rcvBuf[4096];
-    char str1[4096];
+    char str1[1024];
     while (1) 
     {
         printf("begin send request\n");

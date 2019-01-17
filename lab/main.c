@@ -316,7 +316,7 @@ int udp_reply_start(int argc, char *argv[])
 #include <netdb.h> 
 
 #define DEST_PORT 80
-#define DEST_IP_ADDR "13.250.177.223" //13.250.177.223 13.229.188.59 52.74.223.119nslookup 
+#define DEST_IP_ADDR "192.30.255.13" //wget github.com 
 #define DEST_IP_BY_NAME "github.com"
 
 void HttpRequest(int sock_fd)

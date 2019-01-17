@@ -316,9 +316,7 @@ int    SetDefaultGateway()
     }
     printf("Default gateway %s\n", inet_ntoa( ( (struct sockaddr_in *)  &route.rt_gateway)->sin_addr)); 
 }
-/*
-* http
-*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -336,11 +334,10 @@ int    SetDefaultGateway()
 
 void HttpRequest(int sock_fd)
 {
-    //FILE *fp = NULL;
     int sendNum;
     char sendBuf[] = "goog luck";
     char rcvBuf[4096];
-    char str1[1024];
+    char str1[4096];
     while (1) 
     {
         printf("begin send request\n");
@@ -395,8 +392,8 @@ int httphello()
     {
         printf("init sock successful\n");      
     }
-    /*
     //url->ip
+    /*
     struct hostent* hostInfo = gethostbyname(DEST_IP_BY_NAME);
     if(NULL == hostInfo)
     {
@@ -408,10 +405,9 @@ int httphello()
     addr_serv.sin_family = AF_INET;
     addr_serv.sin_port = htons(DEST_PORT);
     addr_serv.sin_addr.s_addr = inet_addr(DEST_IP_ADDR);
-    /*
-    printf("Ip address = %s \n",inet_ntoa(*((struct in_addr*)hostInfo->h_addr)));
-    memcpy(&addr_serv.sin_addr, &(*hostInfo->h_addr_list[0]), hostInfo->h_length);
-    */
+    //printf("Ip address = %s \n",inet_ntoa(*((struct in_addr*)hostInfo->h_addr)));
+    //memcpy(&addr_serv.sin_addr, &(*hostInfo->h_addr_list[0]), hostInfo->h_length);
+
     //connect
     printf("begin connect\n");
     if (connect(sock_fd, (struct sockaddr*)(&addr_serv), sizeof(addr_serv)) < 0)
@@ -430,6 +426,7 @@ int httphello()
     close(sock_fd);
     return 0;
 }
+
 #include "getroute.c"
 #include "dnsquery.c"
 int main()
@@ -444,7 +441,7 @@ int main()
     MenuConfig("replyhi", "Reply hi TCP Service", StartReplyhi);
     MenuConfig("hello", "Hello TCP Client", Hello);
     MenuConfig("dns", "DNS Query github.com", Gethostbyname);
-    MenuConfig("httphello", "http hello to github.com", httphello);
+    MenuConfig("http", "http to github.com", httphello);
     ExecuteMenu();
 }
 

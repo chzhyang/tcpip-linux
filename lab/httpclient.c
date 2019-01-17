@@ -15,7 +15,6 @@
 
 void HttpRequest(int sock_fd)
 {
-    FILE *fp = NULL;
     int sendNum;
     char sendBuf[] = "goog luck";
     char rcvBuf[4096];
